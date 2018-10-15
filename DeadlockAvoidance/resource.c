@@ -1,3 +1,9 @@
+/**
+ * Author: James Ray
+ * Solution: If the diff between the current time and when the process starts is greater than or equal to the wait time
+ * we exit and start a new one.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -8,17 +14,16 @@ bool resourceInUse = false;
 pthread_mutex_t mutex;
 pthread_cond_t condc;
 pthread_t p1, p2, p3;
-clock_t start;
+int waitTime = 200;
 
 void* processTwo(void* arg)
 {
-    int waitTime = 200;
+    clock_t start;
     int processNum = *((int *) arg);
     printf("Process %d Started\n", processNum);
     pthread_mutex_lock(&mutex);
     while (resourceInUse && (clock()-start) < waitTime) pthread_cond_wait(&condc, &mutex);
     if((clock()-start) >= waitTime){
-        start=clock();
         printf("Process %d Deadlocked. Restarting.\n", processNum);
         pthread_cond_signal(&condc);
         pthread_mutex_unlock(&mutex);
@@ -37,7 +42,6 @@ void* processTwo(void* arg)
 
 int main()
 {
-  start = clock();
   //init mutex and conditions
   pthread_mutex_init(&mutex, 0);
   pthread_cond_init(&condc,0);
